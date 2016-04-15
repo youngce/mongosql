@@ -1,5 +1,6 @@
 ###Config Setting
 ##appliction.conf
+```
 spark {
   master="local[*]"
   mem="4g" //
@@ -35,3 +36,4 @@ execute{
 
 }
 
+```
