@@ -1,5 +1,6 @@
 ###Config Setting
-##appliction.conf
+
+#Step1 Set your config
 ```
 spark {
   master="local[*]"
@@ -36,4 +37,12 @@ execute{
 
 }
 
+```
+#Step2 package jar
+```
+sbt assembly
+```
+#Step3 Run
+```
+java -jar yourJar.jar  {configPath}
 ```
