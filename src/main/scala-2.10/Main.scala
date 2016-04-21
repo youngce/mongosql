@@ -32,16 +32,19 @@ object Main extends App{
 
       //.registerTempTable(collection)
   }
+
   sqlContext.udf.register("bday2age",UDFs.bday2age)
-  sqlContext.udf.register("dt2d",UDFs.dt2d)
+  sqlContext.udf.register("ts2d",UDFs.timestamp2Date)
 
   def toJoin(joinConfig:Config)(implicit sqlContext: SQLContext): Unit ={
 
 
     def getDF(collectionConfig:Config)={
 
-      val df= sqlContext.read.format("com.stratio.datasource.mongodb")
-        .options(mongoConfig.createOptions(collectionConfig.getString("name"))).load()
+      val df= sqlContext.read
+                        .format("com.stratio.datasource.mongodb")
+                        .options(mongoConfig.createOptions(collectionConfig.getString("name")))
+                        .load()
       val selectCols=collectionConfig.getStringList("selectCols").map(df(_))
       df.select(selectCols:_*)
 
@@ -72,6 +75,7 @@ object Main extends App{
 
     //
   }
+
   execute(config.getConfig("execute"))
 
   exit()

@@ -18,9 +18,9 @@ object UDFs{
       case _ => 7
     }}
 
-  def dt2d=(dt: Long) => {
+  def timestamp2Date= (ts: Long) => {
     //Calendar.getInstance().setTimeInMillis(dt.getTime)
-    new java.sql.Date(dt)
+    new java.sql.Date(ts)
 
   }
 }
