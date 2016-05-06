@@ -4,10 +4,11 @@
 import org.apache.spark.sql.functions.udf
 import org.joda.time.{LocalDate, DateTime}
 object UDFs{
+
   def bday2age=(b_day: java.sql.Timestamp) => {
     //年齡,default:0無設定.1:15岁以下，2:15-24，3:25-34，4:35-44，5:45-54，6:55-64，7:65岁以上
 
-    val age=DateTime.now().getYear-b_day.getYear
+    val age=DateTime.now().getYear-new DateTime(b_day).getYear
     age match {
       case t if t < 15 => 1
       case t if 15<=t&&t< 25 => 2

@@ -1,6 +1,7 @@
 
 import java.io.File
-import java.util
+import java.sql.Timestamp
+
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.sql.{SaveMode, DataFrame, SQLContext}
@@ -11,8 +12,10 @@ import org.joda.time.DateTime
 import exts.RichConfigExts._
 
 object Main extends App{
-
-
+//  bday2age
+//
+  val ts=new Timestamp(397670400000.0.toLong)
+  val res=bday2age(ts)
   implicit val config: Config = ConfigFactory.parseFile(new File(args(0)))
   //println("The answer is: " + config.getString("simple-app.answer"))
 
@@ -27,18 +30,21 @@ object Main extends App{
   sqlContext.udf.register("bday2age",UDFs.bday2age)
   sqlContext.udf.register("ts2d",UDFs.timestamp2Date)
 
-  val register=config.getConfigList("register")
+  val registerConfs=config.getConfigList("register")
 
-  register.foreach(cf=>{
+  registerConfs.foreach(cf=>{
+
     val table=cf.getOptString("table").getOrElse(cf.getString("collection"))
-    cf.getOptString("collection").foreach(coll=>{
+    def registerTableFromConfig(path:String)(func:String=>DataFrame)={
+      cf.getOptString(path).foreach(str=>func(str).registerTempTable(table))
+    }
+    registerTableFromConfig("collection")(coll=>{
       sqlContext.read.format("com.stratio.datasource.mongodb")
-        .options(mongoConfig.createOptions(coll))
-        .load().registerTempTable(table)
+                .options(mongoConfig.createOptions(coll)).load()
     })
 
-    cf.getOptString("sqlStr").foreach(sqlStr=>{
-      sqlContext.sql(sqlStr).registerTempTable(table)
+    registerTableFromConfig("sqlStr")(sqlStr=>{
+      sqlContext.sql(sqlStr)
     })
 
   })
@@ -52,24 +58,7 @@ object Main extends App{
     })
 
   })
-  def execute(executeConfig:Config)(implicit sqlContext: SQLContext): Unit ={
-    val sqlStrs=executeConfig.getStringList("sql")
-    val isShow=executeConfig.getBoolean("isShow")
-    val saveConf=executeConfig.getConfig("save")
-    sqlStrs.toList.foreach(sqlStr=>{
-      val df=sqlContext.sql(sqlStr.replace("\\n",""))
-      if (isShow) df.show()
-      if (saveConf.getBoolean("isSave")) {
-        df.write.format("com.stratio.datasource.mongodb").mode(SaveMode.Append)
-          .options(mongoConfig.createOptions(saveConf.getString("collection"))).save()
 
-      }
-    })
-
-    //
-  }
-
-  //execute(config.getConfig("execute"))
   config.getConfigList("persistence").foreach(cf=>{
     val coll=cf.getString("collection")
     cf.getStringList("tables").foreach(table=>{
